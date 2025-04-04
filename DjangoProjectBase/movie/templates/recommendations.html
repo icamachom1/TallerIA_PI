@@ -1,0 +1,37 @@
+{% extends 'base.html' %} 
+{% block content %}
+<div class="container">  <!-- mejora el espaciado de la pagina-->
+    <h1>Recommendations</h1>
+    <form action="" method="GET"> 
+        <div class="mb-3"> <!--agrega espacio inferior de 3 unidades-->
+            <label for="prompt" class="form-label"> <!--asocia un texto descriptivo con un campo de entrada en un formulario-->
+                Write a movie description to get a recommendation:
+            </label>
+            <input type="text" class="form-control" name="prompt"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Get Recomendation</button>
+    </form> 
+    
+    {% if recommendation %}
+        <div class="alert alert-info mb-3">
+            {{ recommendation }}
+        </div>
+    {% endif %}
+
+    {% if movie %}
+        <div class="card w-100 p-4">
+            <img src="{{ movie.image.url }}" class="card-img-top" alt="..." style="height: 250px; width: 100%; object-fit: contain;">
+            <div class="card-body">
+                <h5 class="card-title fw-bold">{{ movie.title }}</h5>
+                <p class="card-text">{{ movie.description }}</p>
+                <p class="card-text"><strong>Genre:</strong> {{ movie.genre }}</p>
+                <p class="card-text"><strong>Year:</strong> {{ movie.year }}</p>
+                {% if movie.url %}
+                    <a href="{{ movie.url }}" class="btn btn-primary">Movie Link</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+    
+</div>
+{% endblock content%}

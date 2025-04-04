@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+import os
+from dotenv import load_dotenv
 
 from .models import Movie
 
@@ -7,11 +8,10 @@ import matplotlib.pyplot as plt
 import matplotlib
 import io
 import urllib, base64
+from openai import OpenAI
+import numpy as np
 
 def home(request):
-    #return HttpResponse('<h1>Welcome to Home Page</h1>')
-    #return render(request, 'home.html')
-    #return render(request, 'home.html', {'name':'Paola Vallejo'})
     searchTerm = request.GET.get('searchMovie') # GET se usa para solicitar recursos de un servidor
     if searchTerm:
         movies = Movie.objects.filter(title__icontains=searchTerm)
@@ -21,12 +21,53 @@ def home(request):
 
 
 def about(request):
-    #return HttpResponse('<h1>Welcome to About Page</h1>')
     return render(request, 'about.html')
 
 def signup(request):
     email = request.GET.get('email') 
     return render(request, 'signup.html', {'email':email})
+
+
+def recommendations(request):
+    prompt = request.GET.get('prompt')  # Esto extrae el valor del input llamado "prompt"
+    movie = None
+    recommendation = None
+
+    if prompt:
+        movie = get_movie_recommendation(prompt)
+        recommendation = f"Generated a movie recommendation for: '{prompt}'"
+
+    return render(request, 'recommendations.html', {'movie': movie, 'recommendation':recommendation})
+
+def get_movie_recommendation(prompt):
+    # Cargar la API Key
+    load_dotenv('../openAI.env')
+    client = OpenAI(api_key=os.environ.get('openai_apikey'))
+
+    # Función para calcular similitud de coseno
+    def cosine_similarity(a, b):
+        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+    # Generar embedding del prompt
+    response = client.embeddings.create(
+        input=[prompt],
+        model="text-embedding-3-small"
+    )
+    prompt_emb = np.array(response.data[0].embedding, dtype=np.float32)
+
+    # Recorrer la base de datos y comparar
+    best_movie = None
+    max_similarity = -1
+
+    for movie in Movie.objects.all():
+        movie_emb = np.frombuffer(movie.emb, dtype=np.float32)
+        similarity = cosine_similarity(prompt_emb, movie_emb)
+
+        if similarity > max_similarity:
+            max_similarity = similarity
+            best_movie = movie
+
+    return best_movie
 
 
 def statistics_view0(request):
@@ -123,3 +164,4 @@ def generate_bar_chart(data, xlabel, ylabel):
     buffer.close()
     graphic = base64.b64encode(image_png).decode('utf-8')
     return graphic
+
