@@ -41,8 +41,8 @@ def recommendations(request):
 
 def get_movie_recommendation(prompt):
     # Cargar la API Key
-    load_dotenv('../openAI.env')
-    client = OpenAI(api_key=os.environ.get('openai_apikey'))
+    load_dotenv('api_keys.env')
+    client = OpenAI(api_key=os.environ.get('api_key'))
 
     # Función para calcular similitud de coseno
     def cosine_similarity(a, b):
