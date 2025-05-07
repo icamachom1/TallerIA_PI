@@ -2,3 +2,5 @@ django
 Pillow
 pandas
 matplotlib
+dotenv
+openai
